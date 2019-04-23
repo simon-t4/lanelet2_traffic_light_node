@@ -1,0 +1,142 @@
+cmake_minimum_required(VERSION 2.8.3)
+project(lanelet_tl_node)
+
+
+
+set(LL_DIR /home/simon/work/catkin_ws/src/lanelet2)
+set(LL_RDIR ./src/lanelet2)
+
+set(AW_DIR /home/simon/Autoware)
+set(autoware_msgs_DIR ${AW_DIR}/ros/install/autoware_msgs/share/autoware_msgs/cmake)
+
+find_package(autoware_msgs REQUIRED)
+
+
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  rospy
+  std_msgs
+  tf
+  message_generation
+)
+
+
+## from lanelet2/lanelet2_examples CMakeLists.txt
+set (MRT_PKG_VERSION 2.2.1)
+
+find_package(
+  mrt_cmake_modules REQUIRED
+  lanelet2 REQUIRED
+  )
+
+
+include(UseMrtStdCompilerFlags)
+include(UseMrtAutoTarget)
+include(GatherDeps)
+
+
+
+
+
+
+find_package(AutoDeps REQUIRED COMPONENTS ${DEPENDEND_PACKAGES})
+mrt_add_to_ide(README.md .gitlab-ci.yml)
+
+
+find_package(Eigen3 REQUIRED)
+
+add_definitions(-DPKG_DIR="${CMAKE_CURRENT_LIST_DIR}")
+
+
+## Generate messages in the 'msg' folder
+add_message_files(
+  FILES
+  Num.msg
+#   Message1.msg
+#   Message2.msg
+)
+generate_messages(
+   DEPENDENCIES
+   std_msgs
+ )
+
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES beginner_tutorials
+CATKIN_DEPENDS message_runtime roscpp rospy std_msgs geodesy
+#  DEPENDS system_lib
+)
+
+###########
+## Build ##
+###########
+
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+
+find_package (GeographicLib 1.34 REQUIRED)
+
+#find_package (PugiXML REQUIRED)
+
+include_directories (${GeographicLib_INCLUDE_DIRS})
+    add_definitions (${GeographicLib_DEFINITIONS})
+
+find_package(Boost COMPONENTS serialization system)
+    
+
+include_directories(
+# include
+/usr/include/eigen3
+${LL_DIR}/lanelet2_core/include
+${LL_DIR}/lanelet2_core/include/lanelet2_core
+${LL_DIR}/lanelet2_io/include
+${LL_DIR}/lanelet2_io/include/lanelet2_io
+${LL_DIR}/lanelet2_projection/include
+${LL_DIR}/lanelet2_projection/include/lanelet2_projection
+${mrt_INCLUDE_DIRS}
+${catkin_INCLUDE_DIRS}
+${AW_DIR}/ros/install/autoware_msgs/include
+)
+
+
+link_directories(
+
+  
+${mrt_LIBRARY_DIRS}
+
+)
+
+message ("CATKIN >>>>" ${catkin_INCLUDE_DIRS})
+message ("LLETS >>>>" ${lanelet2_INCLUDE_DIRS})
+message ("MRT >>>>" ${mrt_INCLUDE_DIRS})
+
+
+file (GLOB_RECURSE ll_io_src ${LL_DIR}/lanelet2_io/src/*.cpp)
+file (GLOB_RECURSE ll_core_src ${LL_DIR}/lanelet2_core/src/*.cpp)
+file (GLOB_RECURSE ll_core_h ${LL_DIR}/lanelet2_core/include/*.h)
+file (GLOB_RECURSE ll_tfr_src ${LL_DIR}lanelet2_traffic_rules/src/*.cpp)
+
+file (GLOB PUGI_DEFS /usr/include/pugi*.hpp)
+set(PUGI_LIB /usr/lib/x86_64-linux-gnu/libpugixml.so)
+
+message("io sources " ${ll_io_src})
+message("core sources >>> " ${ll_core_src})
+message("core headers >>> " ${ll_core_h})
+message("pugi defs >>> " ${PUGI_DEFS})
+
+add_executable(lanelet_tl_node
+  src/lanelet_tl_node.cpp src/rosUTM.cpp
+  ${LL_DIR}/lanelet2_projection/src/UTM.cpp
+  ${ll_io_src}
+  ${ll_core_src}
+  ${ll_core_h}
+  ${ll_tfr_src}
+  ${PUGI_DEFS}
+  )
+target_link_libraries(lanelet_tl_node
+  ${catkin_LIBRARIES}
+  ${GeographicLib_LIBRARIES}
+  ${PUGI_LIB}
+  ${Boost_LIBRARIES}
+  )
+
