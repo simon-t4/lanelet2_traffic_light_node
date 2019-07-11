@@ -1,0 +1,8 @@
+<launch>
+
+<node pkg="tf" type="static_transform_publisher" name="test_lanelet_bc" args="70000 45000 0 0 0 0 /world /map 100"/>
+
+  <node pkg="test_lanelet_node" type="test_lanelet_node" name="test_lanelet_node" output="log">
+  </node>
+
+</launch>
